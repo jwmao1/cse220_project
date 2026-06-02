@@ -3,9 +3,11 @@
 
 import argparse
 import csv
+import math
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import PercentFormatter
 
 
 CONFIGS = ("baseline_no_data_prefetch", "bingo")
@@ -65,16 +67,91 @@ def add_speedup(rows):
         row["speedup"] = row["ipc"] / base_ipc if base_ipc else 0.0
 
 
-def plot_speedup(rows, out_path):
+def plot_summary(rows, out_prefix):
     bingo = [row for row in rows if row["config"] == "bingo"]
-    plt.figure(figsize=(11, 4.8))
-    plt.bar([row["benchmark"] for row in bingo], [row["speedup"] for row in bingo])
-    plt.axhline(1.0, color="black", linewidth=1)
-    plt.ylabel("IPC speedup over no data prefetcher")
-    plt.xticks(rotation=35, ha="right")
-    plt.grid(axis="y", alpha=0.25)
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=200)
+    baseline = {row["benchmark"]: row for row in rows if row["config"] == CONFIGS[0]}
+    labels = [row["benchmark"].split(".", 1)[-1].removesuffix("_r") for row in bingo]
+    speedups = [row["speedup"] for row in bingo]
+    geomean = math.exp(sum(math.log(speedup) for speedup in speedups) / len(speedups))
+
+    miss_reductions = []
+    total_baseline_misses = 0.0
+    total_bingo_misses = 0.0
+    for row in bingo:
+        baseline_misses = baseline[row["benchmark"]]["l1_demand_misses"]
+        bingo_misses = row["l1_demand_misses"]
+        total_baseline_misses += baseline_misses
+        total_bingo_misses += bingo_misses
+        miss_reductions.append(
+            (baseline_misses - bingo_misses) / baseline_misses if baseline_misses else 0.0
+        )
+    total_reduction = (total_baseline_misses - total_bingo_misses) / total_baseline_misses
+
+    plt.rcParams.update(
+        {
+            "font.family": "serif",
+            "pdf.use14corefonts": True,
+            "ps.useafm": True,
+            "font.size": 8,
+            "axes.labelsize": 8,
+            "axes.titlesize": 9,
+            "xtick.labelsize": 7,
+            "ytick.labelsize": 7,
+            "legend.fontsize": 7,
+        }
+    )
+    fig, axes = plt.subplots(1, 2, figsize=(7.1, 2.45), constrained_layout=True)
+
+    perf_labels = labels + ["GMEAN"]
+    perf_values = speedups + [geomean]
+    perf_colors = ["#D55E00" if value < 1.0 else "#0072B2" for value in speedups] + ["#2B2B2B"]
+    axes[0].bar(perf_labels, perf_values, color=perf_colors, width=0.72)
+    axes[0].axhline(1.0, color="#555555", linewidth=0.8)
+    axes[0].set_ylim(0.96, 1.31)
+    axes[0].set_ylabel("IPC speedup")
+    axes[0].set_title("(a) Performance over no-data-prefetch baseline")
+    axes[0].grid(axis="y", color="#D0D0D0", linewidth=0.5)
+    axes[0].tick_params(axis="x", rotation=45)
+    axes[0].text(
+        len(labels),
+        geomean + 0.008,
+        f"{geomean:.3f}x",
+        ha="center",
+        va="bottom",
+        fontsize=7,
+        fontweight="bold",
+    )
+
+    miss_labels = labels + ["TOTAL"]
+    miss_values = miss_reductions + [total_reduction]
+    miss_colors = ["#009E73"] * len(labels) + ["#2B2B2B"]
+    axes[1].bar(miss_labels, miss_values, color=miss_colors, width=0.72)
+    axes[1].axhline(0.0, color="#555555", linewidth=0.8)
+    axes[1].set_ylim(0.0, 1.0)
+    axes[1].yaxis.set_major_formatter(PercentFormatter(1.0))
+    axes[1].set_ylabel("Demand-miss reduction")
+    axes[1].set_title("(b) Unified L1 demand-miss reduction")
+    axes[1].grid(axis="y", color="#D0D0D0", linewidth=0.5)
+    axes[1].tick_params(axis="x", rotation=45)
+    axes[1].text(
+        len(labels),
+        total_reduction + 0.025,
+        f"{total_reduction:.1%}",
+        ha="center",
+        va="bottom",
+        fontsize=7,
+        fontweight="bold",
+    )
+    exchange_index = labels.index("exchange2")
+    axes[1].text(exchange_index, 0.025, "N/A", ha="center", va="bottom", fontsize=6, rotation=90)
+
+    for axis in axes:
+        axis.set_axisbelow(True)
+        axis.spines["top"].set_visible(False)
+        axis.spines["right"].set_visible(False)
+
+    fig.savefig(out_prefix.with_suffix(".pdf"))
+    fig.savefig(out_prefix.with_suffix(".png"), dpi=300)
     plt.close()
 
 
@@ -95,7 +172,7 @@ def main():
         writer = csv.DictWriter(fp, fieldnames=rows[0].keys())
         writer.writeheader()
         writer.writerows(rows)
-    plot_speedup(rows, out_dir / "bingo_ipc_speedup.png")
+    plot_summary(rows, out_dir / "bingo_summary")
 
 
 if __name__ == "__main__":

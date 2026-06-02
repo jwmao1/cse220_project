@@ -63,6 +63,7 @@ python3 scripts/run_bingo_spec.py \
 python3 scripts/plot_bingo_results.py \
   --results results_bingo \
   --out figures
+
 ```
 
 The checked-in metrics and plot are generated from 10 SPEC workloads, two
@@ -87,8 +88,7 @@ slowdowns: `502.gcc_r` reaches 0.9975 speedup and `557.xz_r` reaches 0.9868.
 
 - `scarab-overlay/`: Scarab-native Bingo module and integration files.
 - `scripts/`: SPEC runner, metrics plotter, and PDF report renderer.
-- `figures/`: generated per-workload metrics and IPC-speedup plot.
-- `report/`: editable Markdown report and two-page PDF report.
+- `figures/`: generated metrics and publication-quality PDF/PNG summary plots.
 
 This is a Scarab mechanism reproduction, not a bit-identical replay of the
 paper's ChampSim experiments. Simulator timing, cache attachment point, trace
