@@ -1,0 +1,12 @@
+/* Bingo Spatial Data Prefetcher parameters. */
+
+DEF_PARAM(pref_bingo_on                    , PREF_BINGO_ON                     , Flag  , Flag  , FALSE      , )
+DEF_PARAM(pref_bingo_region_size           , PREF_BINGO_REGION_SIZE            , uns   , uns   , 2048       , )
+DEF_PARAM(pref_bingo_min_addr_width        , PREF_BINGO_MIN_ADDR_WIDTH         , uns   , uns   , 5          , )
+DEF_PARAM(pref_bingo_max_addr_width        , PREF_BINGO_MAX_ADDR_WIDTH         , uns   , uns   , 16         , )
+DEF_PARAM(pref_bingo_pc_width              , PREF_BINGO_PC_WIDTH               , uns   , uns   , 16         , )
+DEF_PARAM(pref_bingo_pht_size              , PREF_BINGO_PHT_SIZE               , uns   , uns   , (16 * 1024), )
+DEF_PARAM(pref_bingo_pht_assoc             , PREF_BINGO_PHT_ASSOC              , uns   , uns   , 16         , )
+DEF_PARAM(pref_bingo_filter_table_size     , PREF_BINGO_FILTER_TABLE_SIZE      , uns   , uns   , 64         , )
+DEF_PARAM(pref_bingo_accumulation_table_size, PREF_BINGO_ACCUMULATION_TABLE_SIZE, uns  , uns   , 128        , )
+DEF_PARAM(pref_bingo_vote_threshold        , PREF_BINGO_VOTE_THRESHOLD         , float , float , 0.20       , )

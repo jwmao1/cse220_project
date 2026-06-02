@@ -1,0 +1,11 @@
+benchmark,trace
+perlbench,/path/to/spec/perlbench.trace
+gcc,/path/to/spec/gcc.trace
+mcf,/path/to/spec/mcf.trace
+omnetpp,/path/to/spec/omnetpp.trace
+xalancbmk,/path/to/spec/xalancbmk.trace
+x264,/path/to/spec/x264.trace
+deepsjeng,/path/to/spec/deepsjeng.trace
+leela,/path/to/spec/leela.trace
+exchange2,/path/to/spec/exchange2.trace
+xz,/path/to/spec/xz.trace
